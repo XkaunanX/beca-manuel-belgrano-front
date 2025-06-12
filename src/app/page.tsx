@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link" // TODO Mejorar Codigo, Mejorar SRR
 import { CaptchaForm } from "@/components/captcha-form"
 
 export default function LoginPage() {
@@ -17,7 +17,6 @@ export default function LoginPage() {
             }}
           > 
           </div>
-
           {/* Formulario a la derecha */}
           <div className="w-full md:w-3/5 p-6">
             <h2 className="text-xl font-semibold text-slate-800 mb-6">Iniciar sesión</h2>
@@ -25,10 +24,10 @@ export default function LoginPage() {
             <CaptchaForm />
 
             <div className="flex justify-between mt-6 text-sm">
-              <Link href="/registro" className="text-blue-600 hover:underline">
+              <Link href="/auth/register/" className="text-blue-600 hover:underline">
                 Registrarse
               </Link>
-              <Link href="/recuperar-contrasena" className="text-blue-600 hover:underline">
+              <Link href="/auth/recover-password/" className="text-blue-600 hover:underline">
                 Olvidé mi contraseña
               </Link>
             </div>

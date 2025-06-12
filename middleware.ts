@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server' // TODO Acomodar rutas 
+import { NextResponse } from 'next/server' // TODO Acomodar rutas, Ver compatibilidad con SACTUM
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
