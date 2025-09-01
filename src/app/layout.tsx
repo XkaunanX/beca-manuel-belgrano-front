@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata } from "next"; // TODO Usar otra fuente
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 

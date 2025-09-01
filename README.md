@@ -1,5 +1,29 @@
 # beca-manuel-belgrano-front
 
+## Next.js
+
+```mermaid
+flowchart LR
+    subgraph Cliente["Next.js Cliente (Browser)"]
+        A[Componentes React] --> B[Interaccion Usuario]
+        B --> C[Navegacion SPA]
+        C --> D[Llamadas a API Routes / fetch]
+    end
+
+    subgraph Servidor["Next.js Servidor (Node.js)"]
+        E[SSR - Renderizado en el Servidor]
+        F[SSG - Generacion Estatica]
+        G[API Routes / Endpoints]
+        H[Conexion a BD / Servicios externos]
+
+        E --> I[HTML inicial]
+        F --> I
+        G --> H
+    end
+
+    Cliente -->|Peticion HTTP| Servidor
+    Servidor -->|HTML + JSON| Cliente
+```
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

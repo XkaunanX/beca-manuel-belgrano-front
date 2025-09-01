@@ -1,16 +1,32 @@
-import { NextResponse } from 'next/server' // TODO Acomodar rutas, Ver compatibilidad con SACTUM
+import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const session = request.cookies.get('laravel_session')
+  const token = request.cookies.get('auth_token')?.value || ''
+  const userRolesValue = request.cookies.get('user_roles')?.value || ''
+  const userRoles = userRolesValue.split(',')
 
-  if (request.nextUrl.pathname.startsWith('/home') && !session) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  const { pathname } = request.nextUrl
+
+  if (pathname.startsWith('/auth')) {
+    return NextResponse.next()
+  }
+
+  if (!token) {
+    return NextResponse.redirect(new URL('/auth/', request.url))
+  }
+
+  if (pathname.startsWith('/dashboard')) {
+    if (!userRoles.includes('admin') && !userRoles.includes('auditor')) {
+      return NextResponse.redirect(new URL('/no-autorizado', request.url))
+    }
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: [
+    '/((?!auth).*)', // Aplica a todas las rutas excepto /auth
+  ],
 }
