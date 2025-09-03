@@ -9,6 +9,7 @@ const axiosInstance = axios.create({
     },
 });
 
+// Interceptor para agregar el token de autenticación a cada solicitud
 axiosInstance.interceptors.request.use(
     (config) => {
         const token = Cookies.get("token");
@@ -23,6 +24,18 @@ axiosInstance.interceptors.request.use(
     (error) => {
         return Promise.reject(error);
     }
+);
+
+// Interceptor para manejar respuestas y errores globalmente
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      Cookies.remove("token");
+      Cookies.remove("user_roles");
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;

@@ -14,21 +14,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth";
 
 const navigationItems = [
-  { href: "/", label: "Inicio" },
-  { href: "/", label: "Inscripción" },
-  { href: "/", label: "Renovación" },
-  { href: "/", label: "Documentación" },
-  { href: "/", label: "Reglamento" },
-  { href: "/", label: "Calendario" },
-  { href: "/", label: "Requisitos" },
-  { href: "/", label: "Ayuda" },
+  { href: "/home", label: "Inicio" },
+  { href: "/dashboard/inscripcion", label: "Inscripción" },
+  { href: "/dashboard/renovacion", label: "Renovación" },
+  { href: "/dashboard/documentacion", label: "Documentación" },
+  { href: "/dashboard/reglamento", label: "Reglamento" },
+  { href: "/dashboard/calendario", label: "Calendario" },
+  { href: "/dashboard/requisitos", label: "Requisitos" },
+  { href: "/dashboard/ayuda", label: "Ayuda" },
 ]
 
 export function Header() {
   const pathname = usePathname()
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const { handleLogout } = useAuth();
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
@@ -48,14 +50,15 @@ export function Header() {
             </Button>
 
             <Link href="/dashboard" className="flex items-center">
-              <Image
-                src="url('/aacs.jpg')"
-                alt="Logo Beca Manuel Belgrano"
-                width={40}
-                height={40}
-                className="mr-2"
-              />
-              <span className="text-lg font-semibold text-slate-900 hidden sm:inline-block">Beca Manuel Belgrano</span>
+              <div className="w-10 h-10 rounded-full overflow-hidden border flex items-center justify-center bg-white">
+                <Image
+                  src="/aacs.jpg"
+                  alt="Logo Beca Manuel Belgrano"
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                />
+              </div>
             </Link>
           </div>
 
@@ -104,7 +107,8 @@ export function Header() {
                   <span>Configuración</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-red-600">
+                <DropdownMenuItem className="cursor-pointer text-red-600"
+                onClick={() => handleLogout()}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Cerrar sesión</span>
                 </DropdownMenuItem>

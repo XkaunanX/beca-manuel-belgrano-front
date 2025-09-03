@@ -7,9 +7,11 @@ import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon, AlertCircleIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() { // Definicion del componente funcional
   const { handleLogin, loading, user } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +26,15 @@ export function LoginForm() { // Definicion del componente funcional
     try {
       const data = await handleLogin({ email, password });
       setSuccess(`¡Bienvenido, ${data.user?.name || "usuario"}!`);
+      // Redirigir segun roles
+      const roles = data.user?.roles || [];
+      if (roles.includes("admin")) {
+        router.push("/admin");
+      } else if (roles.includes("reviewer")) {
+        router.push("/reviewer");
+      } else {
+        router.push("/home");
+      }
     } catch (err: any) {
       if (err.type === "validation") {
         setError(err.messages);

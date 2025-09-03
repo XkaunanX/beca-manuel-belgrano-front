@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import {
   getCsrfCookie,
@@ -12,19 +13,20 @@ import type { LoginCredentials, User, RegisterCredentials } from "@/types/auth";
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getProfile();
+      console.log("Perfil completo:", res.data);
       setUser(res.data);
       if (res.data.user && res.data.user.roles && res.data.user.roles.length > 0) {
-        const roles = res.data.user.roles.map((r: any) => r.name).join(",");
+        const roles = res.data.user.roles.join(",");
         Cookies.set("user_roles", roles, { secure: true, sameSite: "Strict", path: "/" });
       }
     } catch {
       setUser(null);
-      localStorage.removeItem("token");
       Cookies.remove("token");
       Cookies.remove("user_roles");
     } finally {
@@ -39,7 +41,6 @@ export function useAuth() {
         await getCsrfCookie();
         const res = await login(credentials);
         if (res.data.token) {
-          localStorage.setItem("token", res.data.token);
           Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
         }
         await fetchUser();
@@ -67,7 +68,6 @@ export function useAuth() {
       const res = await register(credentials);
 
       if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
         Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
       }
 
@@ -79,10 +79,10 @@ export function useAuth() {
   const handleLogout = useCallback(async () => {
     await logout();
     setUser(null);
-    localStorage.removeItem("token");
     Cookies.remove("token");
     Cookies.remove("user_roles");
-  }, []);
+    router.push("/auth");
+  }, [router]);
 
   return { user, loading, handleLogin, handleRegister, handleLogout };
 }
