@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import Cookies from "js-cookie";
 import {
   getCsrfCookie,
   login,
@@ -18,13 +19,14 @@ export function useAuth() {
       const res = await getProfile();
       setUser(res.data);
       if (res.data.user && res.data.user.roles && res.data.user.roles.length > 0) {
-        const roles = res.data.user.roles.map((r: any) => r.name).join(',');
-        document.cookie = `user_roles=${roles}; path=/;`;
+        const roles = res.data.user.roles.map((r: any) => r.name).join(",");
+        Cookies.set("user_roles", roles, { secure: true, sameSite: "Strict", path: "/" });
       }
     } catch {
       setUser(null);
       localStorage.removeItem("token");
-      document.cookie = "user_roles=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      Cookies.remove("token");
+      Cookies.remove("user_roles");
     } finally {
       setLoading(false);
     }
@@ -38,6 +40,7 @@ export function useAuth() {
         const res = await login(credentials);
         if (res.data.token) {
           localStorage.setItem("token", res.data.token);
+          Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
         }
         await fetchUser();
         return res.data; // Devuelve el JSON del login
@@ -65,6 +68,7 @@ export function useAuth() {
 
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
+        Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
       }
 
       await fetchUser();
@@ -76,7 +80,8 @@ export function useAuth() {
     await logout();
     setUser(null);
     localStorage.removeItem("token");
-    document.cookie = "user_roles=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    Cookies.remove("token");
+    Cookies.remove("user_roles");
   }, []);
 
   return { user, loading, handleLogin, handleRegister, handleLogout };

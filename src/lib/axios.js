@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import axios from "axios";
 
 // Se crea una instancia personalizada de axios para reutilizar configuraciones globales
@@ -10,7 +11,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("token");
+        const token = Cookies.get("token");
         if (token) {
             config.headers = {
                 ...config.headers,

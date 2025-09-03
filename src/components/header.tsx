@@ -1,0 +1,147 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { usePathname } from "next/navigation"
+import { Bell, ChevronDown, LogOut, Menu, Settings, User, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
+
+const navigationItems = [
+  { href: "/", label: "Inicio" },
+  { href: "/", label: "Inscripción" },
+  { href: "/", label: "Renovación" },
+  { href: "/", label: "Documentación" },
+  { href: "/", label: "Reglamento" },
+  { href: "/", label: "Calendario" },
+  { href: "/", label: "Requisitos" },
+  { href: "/", label: "Ayuda" },
+]
+
+export function Header() {
+  const pathname = usePathname()
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
+
+  return (
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div className="px-4 sm:px-6 lg:px-8">
+        {/* Desktop Header */}
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden mr-2"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Menú</span>
+            </Button>
+
+            <Link href="/dashboard" className="flex items-center">
+              <Image
+                src="url('/aacs.jpg')"
+                alt="Logo Beca Manuel Belgrano"
+                width={40}
+                height={40}
+                className="mr-2"
+              />
+              <span className="text-lg font-semibold text-slate-900 hidden sm:inline-block">Beca Manuel Belgrano</span>
+            </Link>
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "px-3 py-2 text-sm rounded-md transition-colors",
+                  pathname === item.href
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* User Actions */}
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="text-slate-500 hover:text-slate-900">
+              <Bell className="h-5 w-5" />
+              <span className="sr-only">Notificaciones</span>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-blue-700 font-medium text-sm">JD</span>
+                  </div>
+                  <span className="hidden sm:inline-block text-sm font-medium">Juan Pérez</span>
+                  <ChevronDown className="h-4 w-4 text-slate-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Mi perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Configuración</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar sesión</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      {showMobileMenu && (
+        <div className="md:hidden border-t border-slate-200">
+          <div className="py-2 px-4 flex justify-between items-center">
+            <h3 className="text-sm font-medium text-slate-900">Menú</h3>
+            <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <nav className="px-2 pb-3 pt-1">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "block px-3 py-2 text-sm rounded-md my-1 transition-colors",
+                  pathname === item.href
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                )}
+                onClick={() => setShowMobileMenu(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+}
