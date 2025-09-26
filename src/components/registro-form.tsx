@@ -1,116 +1,130 @@
-"use client" // TODO Mejorar CSR, codigo
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { EyeIcon, EyeOffIcon } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { getGenres } from "@/services/genre";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function RegistroForm() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const router = useRouter();
+  const { handleRegister, handleLogin } = useAuth();
+
   const [formData, setFormData] = useState({
     apellido: "",
     nombre: "",
-    esArgentino: "si",
     cuitCuil: "",
     email: "",
     genero: "",
-    usuario: "",
+    name: "",
     password: "",
     confirmPassword: "",
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [genres, setGenres] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const data = await getGenres();
+        setGenres(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchGenres();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Limpiar error cuando el usuario comienza a corregir
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
-  }
+  };
 
   const handleSelectChange = (value: string, name: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Limpiar error cuando el usuario comienza a corregir
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
+    if (!formData.apellido.trim()) newErrors.apellido = "El apellido es requerido";
+    if (!formData.nombre.trim()) newErrors.nombre = "El nombre es requerido";
+    if (!formData.cuitCuil.trim()) newErrors.cuitCuil = "El CUIT/CUIL es requerido";
+    else if (!/^\d{11}$/.test(formData.cuitCuil)) newErrors.cuitCuil = "El CUIT/CUIL debe tener 11 dígitos numéricos";
+    if (!formData.email.trim()) newErrors.email = "El correo electrónico es requerido";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Ingrese un correo electrónico válido";
+    if (!formData.genero) newErrors.genero = "Seleccione un género";
+    if (!formData.name.trim()) newErrors.name = "El nombre de usuario es requerido";
+    else if (formData.name.length < 4) newErrors.name = "El usuario debe tener al menos 4 caracteres";
+    if (!formData.password) newErrors.password = "La contraseña es requerida";
+    else if (formData.password.length < 8) newErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Las contraseñas no coinciden";
 
-    // Validar campos requeridos
-    if (!formData.apellido.trim()) newErrors.apellido = "El apellido es requerido"
-    if (!formData.nombre.trim()) newErrors.nombre = "El nombre es requerido"
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-    // Validar CUIT/CUIL (11 dígitos numéricos)
-    if (!formData.cuitCuil.trim()) {
-      newErrors.cuitCuil = "El CUIT/CUIL es requerido"
-    } else if (!/^\d{11}$/.test(formData.cuitCuil)) {
-      newErrors.cuitCuil = "El CUIT/CUIL debe tener 11 dígitos numéricos"
+    try {
+      await handleRegister({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        cuitCuil: formData.cuitCuil,
+        genero: formData.genero,
+      });
+
+      toast.success("Registro exitoso");
+
+      await handleLogin({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      router.push("/home");
+
+    } catch (err: any) {
+      // Captura errores de validación 422 del backend
+      if (err.response?.status === 422 && err.response.data?.errors) {
+        const validationErrors = err.response.data.errors;
+        // Cada campo puede tener un array de errores
+        Object.values(validationErrors).flat().forEach((msg: any) => {
+          if (typeof msg === "string") toast.error(msg);
+        });
+      } else if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else if (err.message) {
+        toast.error(err.message);
+      } else {
+        toast.error("Error inesperado al registrar");
+      }
     }
-
-    // Validar email
-    if (!formData.email.trim()) {
-      newErrors.email = "El correo electrónico es requerido"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Ingrese un correo electrónico válido"
-    }
-
-    // Validar género
-    if (!formData.genero) newErrors.genero = "Seleccione un género"
-
-    // Validar usuario
-    if (!formData.usuario.trim()) {
-      newErrors.usuario = "El nombre de usuario es requerido"
-    } else if (formData.usuario.length < 4) {
-      newErrors.usuario = "El usuario debe tener al menos 4 caracteres"
-    }
-
-    // Validar contraseña
-    if (!formData.password) {
-      newErrors.password = "La contraseña es requerida"
-    } else if (formData.password.length < 8) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres"
-    }
-
-    // Validar confirmación de contraseña
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Las contraseñas no coinciden"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (validateForm()) {
-      // Aquí iría la lógica para enviar los datos al servidor
-      alert("Formulario enviado correctamente. En un entorno real, esto registraría al usuario.")
-      console.log("Datos del formulario:", formData)
-    } else {
-      console.log("Formulario con errores")
-    }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,31 +158,6 @@ export default function RegistroForm() {
           />
           {errors.nombre && <p className="text-red-500 text-xs">{errors.nombre}</p>}
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>
-          ¿Es argentino? <span className="text-red-500">*</span>
-        </Label>
-        <RadioGroup
-          defaultValue="si"
-          value={formData.esArgentino}
-          onValueChange={(value) => handleSelectChange(value, "esArgentino")}
-          className="flex space-x-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="si" id="argentino-si" />
-            <Label htmlFor="argentino-si" className="cursor-pointer">
-              Sí
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="argentino-no" />
-            <Label htmlFor="argentino-no" className="cursor-pointer">
-              No
-            </Label>
-          </div>
-        </RadioGroup>
       </div>
 
       <div className="space-y-2">
@@ -211,29 +200,29 @@ export default function RegistroForm() {
             <SelectValue placeholder="Seleccione su género" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="masculino">Masculino</SelectItem>
-            <SelectItem value="femenino">Femenino</SelectItem>
-            <SelectItem value="no-binario">No binario</SelectItem>
-            <SelectItem value="otro">Otro</SelectItem>
-            <SelectItem value="prefiero-no-decir">Prefiero no decir</SelectItem>
+            {genres.map((g, i) => (
+              <SelectItem key={i} value={g}>
+                {g}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         {errors.genero && <p className="text-red-500 text-xs">{errors.genero}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="usuario">
+        <Label htmlFor="name">
           Nombre de usuario <span className="text-red-500">*</span>
         </Label>
         <Input
-          id="usuario"
-          name="usuario"
-          value={formData.usuario}
+          id="name"
+          name="name"
+          value={formData.name}
           onChange={handleChange}
           placeholder="Elija un nombre de usuario"
-          className={errors.usuario ? "border-red-500" : ""}
+          className={errors.name ? "border-red-500" : ""}
         />
-        {errors.usuario && <p className="text-red-500 text-xs">{errors.usuario}</p>}
+        {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
       </div>
 
       <div className="space-y-2">

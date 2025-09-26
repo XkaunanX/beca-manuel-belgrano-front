@@ -7,31 +7,19 @@ export function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  // Si no esta logueado y no va a /auth, lo mandamos al login
-  if (!token && pathname !== "/auth") {
+  if (pathname === "/") {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
 
-  // Si entra a "/" y tiene token -> lo mando a /home
-  if (pathname === "/" && token) {
-    return NextResponse.redirect(new URL("/home", req.url));
-  }
-
-  // Si entra a "/" sin token -> lo mando a /auth
-  if (pathname === "/" && !token) {
-    return NextResponse.redirect(new URL("/auth", req.url));
-  }
-
-  // Proteccion por roles
-  if (pathname.startsWith("/admin")) {
-    if (!roles.includes("admin")) {
-      return NextResponse.redirect(new URL("/", req.url));
+  if (pathname.startsWith("/admin/")) {
+    if (!token || !roles.includes("admin")) {
+      return NextResponse.redirect(new URL("/admin", req.url));
     }
   }
 
-  if (pathname.startsWith("/reviewer")) {
-    if (!roles.includes("reviewer")) {
-      return NextResponse.redirect(new URL("/", req.url));
+  if (pathname.startsWith("/home")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/auth", req.url));
     }
   }
 
@@ -39,5 +27,9 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/admin/:path*', '/reviewer/:path*', '/home/:path*'],
+  matcher: [
+    '/',              
+    '/admin/:path*',  
+    '/home/:path*'    
+  ],
 }

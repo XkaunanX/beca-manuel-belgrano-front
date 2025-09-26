@@ -11,8 +11,12 @@ export interface User {
 }
 
 export interface RegisterCredentials {
-  name: string;
-  email: string;
+  name: string;             // nombre del User
+  email: string;       // opcional si no se usa en backend
   password: string;
   password_confirmation: string;
+  nombre: string;           // nombre del Scholarship
+  apellido: string;
+  cuitCuil: string;
+  genero: string;
 }

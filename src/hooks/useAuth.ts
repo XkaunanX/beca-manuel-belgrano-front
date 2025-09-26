@@ -19,7 +19,6 @@ export function useAuth() {
     setLoading(true);
     try {
       const res = await getProfile();
-      console.log("Perfil completo:", res.data);
       setUser(res.data);
       if (res.data.user && res.data.user.roles && res.data.user.roles.length > 0) {
         const roles = res.data.user.roles.join(",");
@@ -65,13 +64,20 @@ export function useAuth() {
   const handleRegister = useCallback(
     async (credentials: RegisterCredentials) => {
       await getCsrfCookie();
-      const res = await register(credentials);
-
-      if (res.data.token) {
-        Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
+      try {
+        const res = await register(credentials); // register usa tu instancia de axios
+        if (res.data.token) {
+          Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
+        }
+        await fetchUser();
+        return res.data; // devuelve la data cuando todo va bien
+      } catch (error: any) {
+        if (error.response?.status === 422) {
+          // lanzamos la respuesta del backend para manejar errores específicos en el formulario
+          throw error.response.data;
+        }
+        throw error; // otros errores
       }
-
-      await fetchUser();
     },
     [fetchUser]
   );

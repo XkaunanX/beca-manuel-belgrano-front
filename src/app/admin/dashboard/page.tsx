@@ -1,11 +1,11 @@
 "use client";
 
-export default function Reviewer() {
+export default function Dashboard() {
   return (
     <div>
       <main>
         <h1>Hola mundo</h1>
-        <p>Bienvenido a la página de Revisores.</p>
+        <p>Bienvenido a la página de dashboard.</p>
       </main>
     </div>
   );

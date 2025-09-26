@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export function LoginForm() {
+export function AdminLoginForm() {
   const { handleLogin, loading } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -21,10 +21,18 @@ export function LoginForm() {
 
     try {
       const data = await handleLogin({ email, password });
-      toast.success(`¡Bienvenido, ${data.user?.name || "usuario"}!`);
 
-      router.push("/home");
-      
+      // Validar que el usuario tenga rol de admin
+      const roles = data.user?.roles || [];
+      if (!roles.includes("admin")) {
+        toast.error("No tenés permisos de administrador");
+        return;
+      }
+
+      toast.success(`¡Bienvenido, ${data.user?.name || "Administrador"}!`);
+
+      // Redirigir al home de administradores
+      router.push("/admin/dashboard");
     } catch (err: any) {
       if (err.type === "validation") {
         err.messages.forEach((msg: string) => toast.error(msg));
@@ -78,7 +86,7 @@ export function LoginForm() {
 
       <Button
         type="submit"
-        className="w-full mt-6 bg-blue-700 hover:bg-blue-800"
+        className="w-full mt-6"
         disabled={loading}
       >
         {loading ? "Cargando..." : "Iniciar sesión"}
