@@ -1,0 +1,41 @@
+import Cookies from "js-cookie";
+import axios from "axios";
+
+// Se crea una instancia personalizada de axios para reutilizar configuraciones globales
+const axiosInstance = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL, // Se toma la URL base desde las variables de entorno
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Interceptor para agregar el token de autenticación a cada solicitud
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = Cookies.get("token");
+        if (token) {
+            config.headers = {
+                ...config.headers,
+                Authorization: `Bearer ${token}`,
+            };
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Interceptor para manejar respuestas y errores globalmente
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      Cookies.remove("token");
+      Cookies.remove("user_roles");
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default axiosInstance;
