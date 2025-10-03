@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const navigationItems = [
   { href: "/home", label: "Inicio" },
-  { href: "/dashboard/inscripcion", label: "Inscripción" },
+  { href: "/home/inscripcion", label: "Inscripción" },
   { href: "/dashboard/renovacion", label: "Renovación" },
   { href: "/dashboard/documentacion", label: "Documentación" },
   { href: "/dashboard/reglamento", label: "Reglamento" },

@@ -1,4 +1,4 @@
-export interface Genre {
+export interface Institution {
   id: number;
   name: string;
 }

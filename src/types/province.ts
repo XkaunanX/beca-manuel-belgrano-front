@@ -1,4 +1,4 @@
-export interface Genre {
+export interface Province {
   id: number;
   name: string;
 }
