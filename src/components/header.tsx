@@ -24,7 +24,7 @@ const navigationItems = [
   { href: "/dashboard/reglamento", label: "Reglamento" },
   { href: "/dashboard/calendario", label: "Calendario" },
   { href: "/dashboard/requisitos", label: "Requisitos" },
-  { href: "/dashboard/ayuda", label: "Ayuda" },
+  { href: "/home/ayuda", label: "Ayuda" },
 ]
 
 export function Header() {
