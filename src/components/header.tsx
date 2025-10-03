@@ -21,7 +21,7 @@ const navigationItems = [
   { href: "/home/inscripcion", label: "Inscripción" },
   { href: "/home/renovacion", label: "Renovación" },
   { href: "/home/documentacion", label: "Documentación" },
-  { href: "/home/reglamento", label: "Reglamento" },
+  { href: "/REGLAMENTO.pdf", label: "Reglamento", external: true }, 
   { href: "/home/calendario", label: "Calendario" },
   { href: "/home/requisitos", label: "Requisitos" },
   { href: "/home/ayuda", label: "Ayuda" },
@@ -64,20 +64,34 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "px-3 py-2 text-sm rounded-md transition-colors",
-                  pathname === item.href
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navigationItems.map((item) =>
+              item.external ? (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    window.open(item.href, "_blank")
+                  }}
+                  className="px-3 py-2 text-sm rounded-md transition-colors text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "px-3 py-2 text-sm rounded-md transition-colors",
+                    pathname === item.href
+                      ? "bg-blue-50 text-blue-700 font-medium"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
           </nav>
 
           {/* User Actions */}
@@ -107,8 +121,10 @@ export function Header() {
                   <span>Configuración</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-red-600"
-                onClick={() => handleLogout()}>
+                <DropdownMenuItem
+                  className="cursor-pointer text-red-600"
+                  onClick={() => handleLogout()}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Cerrar sesión</span>
                 </DropdownMenuItem>
@@ -128,21 +144,36 @@ export function Header() {
             </Button>
           </div>
           <nav className="px-2 pb-3 pt-1">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "block px-3 py-2 text-sm rounded-md my-1 transition-colors",
-                  pathname === item.href
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                )}
-                onClick={() => setShowMobileMenu(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navigationItems.map((item) =>
+              item.external ? (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    window.open(item.href, "_blank")
+                    setShowMobileMenu(false)
+                  }}
+                  className="block px-3 py-2 text-sm rounded-md my-1 transition-colors text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "block px-3 py-2 text-sm rounded-md my-1 transition-colors",
+                    pathname === item.href
+                      ? "bg-blue-50 text-blue-700 font-medium"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                  )}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
           </nav>
         </div>
       )}
