@@ -10,6 +10,7 @@ import { getGenres } from "@/services/genre";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Genre } from "@/types/genre";
 
 export default function RegistroForm() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function RegistroForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [genres, setGenres] = useState<string[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
 
   useEffect(() => {
     const fetchGenres = async () => {
@@ -88,7 +89,7 @@ export default function RegistroForm() {
     if (!validateForm()) return;
 
     try {
-      await handleRegister({
+      const response = await handleRegister({
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -98,6 +99,8 @@ export default function RegistroForm() {
         cuitCuil: formData.cuitCuil,
         genero: formData.genero,
       });
+
+      console.log("Respuesta del backend (registro):", JSON.stringify(response, null, 2));
 
       toast.success("Registro exitoso");
 
@@ -109,10 +112,8 @@ export default function RegistroForm() {
       router.push("/home");
 
     } catch (err: any) {
-      // Captura errores de validación 422 del backend
       if (err.response?.status === 422 && err.response.data?.errors) {
         const validationErrors = err.response.data.errors;
-        // Cada campo puede tener un array de errores
         Object.values(validationErrors).flat().forEach((msg: any) => {
           if (typeof msg === "string") toast.error(msg);
         });
@@ -200,9 +201,9 @@ export default function RegistroForm() {
             <SelectValue placeholder="Seleccione su género" />
           </SelectTrigger>
           <SelectContent>
-            {genres.map((g, i) => (
-              <SelectItem key={i} value={g}>
-                {g}
+            {genres.map((g) => (
+              <SelectItem key={g.id} value={g.name}>
+                {g.name}
               </SelectItem>
             ))}
           </SelectContent>

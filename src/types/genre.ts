@@ -1,1 +1,4 @@
-export type Genre = string;
+export interface Genre {
+  id: number;
+  name: string;
+}
