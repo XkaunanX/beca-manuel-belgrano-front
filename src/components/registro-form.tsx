@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Genre } from "@/types/genre";
 
+
+
 export default function RegistroForm() {
   const router = useRouter();
   const { handleRegister, handleLogin } = useAuth();
