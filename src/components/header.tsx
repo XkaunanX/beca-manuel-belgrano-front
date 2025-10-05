@@ -18,13 +18,13 @@ import { useAuth } from "@/hooks/useAuth";
 
 const navigationItems = [
   { href: "/home", label: "Inicio" },
-  { href: "/dashboard/inscripcion", label: "Inscripción" },
+  { href: "/home/inscripcion", label: "Inscripción" },
   { href: "/dashboard/renovacion", label: "Renovación" },
   { href: "/dashboard/documentacion", label: "Documentación" },
   { href: "/dashboard/reglamento", label: "Reglamento" },
   { href: "/dashboard/calendario", label: "Calendario" },
   { href: "/dashboard/requisitos", label: "Requisitos" },
-  { href: "/dashboard/ayuda", label: "Ayuda" },
+  { href: "/home/ayuda", label: "Ayuda" },
 ]
 
 export function Header() {
