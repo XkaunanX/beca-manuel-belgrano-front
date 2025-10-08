@@ -22,7 +22,7 @@ export function LoginForm() {
     try {
       const data = await handleLogin({ email, password });
       toast.success(`¡Bienvenido, ${data.user?.name || "usuario"}!`);
-
+      
       router.push("/home");
       
     } catch (err: any) {

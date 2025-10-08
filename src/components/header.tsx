@@ -1,19 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { usePathname } from "next/navigation"
-import { Bell, ChevronDown, LogOut, Menu, Settings, User, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import {
+  Bell,
+  ChevronDown,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
 const navigationItems = [
@@ -25,17 +33,37 @@ const navigationItems = [
   { href: "/home/calendario", label: "Calendario" },
   { href: "/home/requisitos", label: "Requisitos" },
   { href: "/home/ayuda", label: "Ayuda" },
-]
+];
 
 export function Header() {
-  const pathname = usePathname()
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const pathname = usePathname();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { handleLogout } = useAuth();
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    // Recuperar datos del usuario guardados en localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUser(parsed);
+      } catch (e) {
+        console.error("Error al parsear el usuario del localStorage", e);
+      }
+    }
+  }, []);
+
+  // Genera las iniciales del usuario (por ejemplo, "JD" para Juan Díaz)
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
-        {/* Desktop Header */}
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
@@ -49,7 +77,7 @@ export function Header() {
               <span className="sr-only">Menú</span>
             </Button>
 
-            <Link href="/dashboard" className="flex items-center">
+            <Link href="/home" className="flex items-center">
               <div className="w-10 h-10 rounded-full overflow-hidden border flex items-center justify-center bg-white">
                 <Image
                   src="/aacs.jpg"
@@ -72,7 +100,7 @@ export function Header() {
                   "px-3 py-2 text-sm rounded-md transition-colors",
                   pathname === item.href
                     ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 )}
               >
                 {item.label}
@@ -82,7 +110,11 @@ export function Header() {
 
           {/* User Actions */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="text-slate-500 hover:text-slate-900">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-slate-500 hover:text-slate-900"
+            >
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notificaciones</span>
             </Button>
@@ -91,15 +123,20 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-700 font-medium text-sm">JD</span>
+                    <span className="text-blue-700 font-medium text-sm">
+                      {user?.name
+                        ? getInitials(user.name)
+                        : "?"}
+                    </span>
                   </div>
-                  <span className="hidden sm:inline-block text-sm font-medium">Juan Pérez</span>
+                  <span className="hidden sm:inline-block text-sm font-medium">
+                    {user?.name || "Usuario"}
+                  </span>
                   <ChevronDown className="h-4 w-4 text-slate-500" />
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end" className="w-56">
-                
-                {/* Mi perfil */}
                 <DropdownMenuItem asChild>
                   <Link href="/home/perfil" className="flex items-center w-full">
                     <User className="mr-2 h-4 w-4" />
@@ -107,7 +144,6 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
 
-                {/* ✅ Configuración */}
                 <DropdownMenuItem asChild>
                   <Link href="/configuracion" className="flex items-center w-full">
                     <Settings className="mr-2 h-4 w-4" />
@@ -117,7 +153,6 @@ export function Header() {
 
                 <DropdownMenuSeparator />
 
-                {/* ✅ Cerrar sesión */}
                 <DropdownMenuItem
                   className="cursor-pointer text-red-600"
                   onClick={() => handleLogout()}
@@ -131,12 +166,16 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Navigation Menu */}
+      {/* Mobile Navigation */}
       {showMobileMenu && (
         <div className="md:hidden border-t border-slate-200">
           <div className="py-2 px-4 flex justify-between items-center">
             <h3 className="text-sm font-medium text-slate-900">Menú</h3>
-            <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(false)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobileMenu(false)}
+            >
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -149,7 +188,7 @@ export function Header() {
                   "block px-3 py-2 text-sm rounded-md my-1 transition-colors",
                   pathname === item.href
                     ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 )}
                 onClick={() => setShowMobileMenu(false)}
               >
@@ -160,5 +199,5 @@ export function Header() {
         </div>
       )}
     </header>
-  )
+  );
 }
