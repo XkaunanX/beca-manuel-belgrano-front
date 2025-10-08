@@ -19,11 +19,11 @@ import { useAuth } from "@/hooks/useAuth";
 const navigationItems = [
   { href: "/home", label: "Inicio" },
   { href: "/home/inscripcion", label: "Inscripción" },
-  { href: "/dashboard/renovacion", label: "Renovación" },
-  { href: "/dashboard/documentacion", label: "Documentación" },
-  { href: "/dashboard/reglamento", label: "Reglamento" },
-  { href: "/dashboard/calendario", label: "Calendario" },
-  { href: "/dashboard/requisitos", label: "Requisitos" },
+  { href: "/home/renovacion", label: "Renovación" },
+  { href: "/home/documentacion", label: "Documentación" },
+  { href: "/home/reglamento", label: "Reglamento" },
+  { href: "/home/calendario", label: "Calendario" },
+  { href: "/home/requisitos", label: "Requisitos" },
   { href: "/home/ayuda", label: "Ayuda" },
 ]
 
@@ -98,17 +98,30 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Mi perfil</span>
+                
+                {/* Mi perfil */}
+                <DropdownMenuItem asChild>
+                  <Link href="/home/perfil" className="flex items-center w-full">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Mi perfil</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configuración</span>
+
+                {/* ✅ Configuración */}
+                <DropdownMenuItem asChild>
+                  <Link href="/configuracion" className="flex items-center w-full">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configuración</span>
+                  </Link>
                 </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-red-600"
-                onClick={() => handleLogout()}>
+
+                {/* ✅ Cerrar sesión */}
+                <DropdownMenuItem
+                  className="cursor-pointer text-red-600"
+                  onClick={() => handleLogout()}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Cerrar sesión</span>
                 </DropdownMenuItem>
