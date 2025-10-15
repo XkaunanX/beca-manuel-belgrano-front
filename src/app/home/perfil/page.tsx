@@ -3,16 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
-import Cookies from "js-cookie";
 
 import { useAuth } from "@/hooks/useAuth";
-import { getMyScholarship } from "@/services/scholarship";
 
 interface ProfileData {
   nombre: string;
@@ -23,7 +19,7 @@ interface ProfileData {
 }
 
 export default function PerfilPage() {
-  const { user, loading: authLoading, handleLogout } = useAuth();
+  const { user, scholarship, handleLogout, loading: authLoading } = useAuth();
   const [profileData, setProfileData] = useState<ProfileData>({
     nombre: "",
     apellido: "",
@@ -34,38 +30,21 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        // Token guardado por useAuth
-        const token = Cookies.get("token");
-        if (!token) {
-          console.warn("⚠️ No hay token disponible.");
-          setLoading(false);
-          return;
-        }
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-        // 1️⃣ Intentamos obtener datos extra de la beca (si existen)
-        const becaData = await getMyScholarship(token).catch(() => null);
+    const nombreCompleto = user.name?.split(" ") || [];
+    const nombre = scholarship?.name || nombreCompleto[0] || "";
+    const apellido = scholarship?.last_name || nombreCompleto.slice(1).join(" ") || "";
+    const dni = scholarship?.cuit || ""; // o usar dni si lo tenés
+    const fecha_nacimiento = scholarship?.date_birth || "";
+    const email = user.email || "";
 
-        // 2️⃣ Usamos los datos del usuario logueado (useAuth)
-        const nombreCompleto = user?.name?.split(" ") || [];
-        const nombre = becaData?.nombre || nombreCompleto[0] || "";
-        const apellido =
-          becaData?.apellido || nombreCompleto.slice(1).join(" ") || "";
-        const dni = becaData?.dni || "";
-        const fecha_nacimiento = becaData?.fecha_nacimiento || "";
-        const email = user?.email || becaData?.email || "";
-
-        setProfileData({ nombre, apellido, dni, fecha_nacimiento, email });
-      } catch (err) {
-        console.error("❌ Error al cargar perfil:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfileData();
-  }, [user]);
+    setProfileData({ nombre, apellido, dni, fecha_nacimiento, email });
+    setLoading(false);
+  }, [user, scholarship]);
 
   const getDisplayValue = (value?: string | null) => value || "No disponible";
 
@@ -81,7 +60,6 @@ export default function PerfilPage() {
     <div className="min-h-screen bg-slate-50">
       <main className="p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
               <Button variant="ghost" size="sm" asChild className="mr-2">
@@ -97,7 +75,6 @@ export default function PerfilPage() {
             </Button>
           </div>
 
-          {/* Avatar y datos básicos */}
           <Card className="mb-6">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
@@ -113,17 +90,15 @@ export default function PerfilPage() {
                     {getDisplayValue(profileData.nombre)}{" "}
                     {getDisplayValue(profileData.apellido)}
                   </h2>
-                  <p className="text-slate-600">
-                    DNI: {getDisplayValue(profileData.dni)}
-                  </p>
-                  <p className="text-slate-600">
-                    Email: {getDisplayValue(profileData.email)}
-                  </p>
+                  <p className="text-slate-600">DNI: {getDisplayValue(profileData.dni)}</p>
+                  <p className="text-slate-600">Email: {getDisplayValue(profileData.email)}</p>
                   <p className="text-slate-600">
                     Fecha de nacimiento: {getDisplayValue(profileData.fecha_nacimiento)}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2 justify-center md:justify-start">
-                    <Badge variant="secondary">Becario activo</Badge>
+                    <Badge variant="secondary">
+                      {scholarship?.state ? scholarship.state.replace(/_/g, " ") : "Estado no disponible"}
+                    </Badge>
                   </div>
                 </div>
               </div>

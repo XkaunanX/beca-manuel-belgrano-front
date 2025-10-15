@@ -4,15 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import {
-  Bell,
-  ChevronDown,
-  LogOut,
-  Menu,
-  Settings,
-  User,
-  X,
-} from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,18 +30,19 @@ const navigationItems = [
 export function Header() {
   const pathname = usePathname();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const { handleLogout } = useAuth();
+  const { handleLogout, scholarship } = useAuth();
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
     // Recuperar datos del usuario guardados en localStorage
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        setUser(parsed);
-      } catch (e) {
-        console.error("Error al parsear el usuario del localStorage", e);
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Error al parsear el usuario del localStorage", e);
+        }
       }
     }
   }, []);
@@ -60,6 +53,12 @@ export function Header() {
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
+
+  // 🔹 Lógica para mostrar botones según estado del scholarship
+  const showInscripcion = !["inscripto", "activo", "perdida"].includes(scholarship?.state || "");
+  const showRenovacion = !["inscripto", "perdida", "inscripcion_pendiente"].includes(
+    scholarship?.state || ""
+  );
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
@@ -92,20 +91,24 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "px-3 py-2 text-sm rounded-md transition-colors",
-                  pathname === item.href
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              if (item.label === "Inscripción" && !showInscripcion) return null;
+              if (item.label === "Renovación" && !showRenovacion) return null;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "px-3 py-2 text-sm rounded-md transition-colors",
+                    pathname === item.href
+                      ? "bg-blue-50 text-blue-700 font-medium"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* User Actions */}
@@ -124,9 +127,7 @@ export function Header() {
                 <Button variant="ghost" className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                     <span className="text-blue-700 font-medium text-sm">
-                      {user?.name
-                        ? getInitials(user.name)
-                        : "?"}
+                      {user?.name ? getInitials(user.name) : "?"}
                     </span>
                   </div>
                   <span className="hidden sm:inline-block text-sm font-medium">
@@ -180,21 +181,25 @@ export function Header() {
             </Button>
           </div>
           <nav className="px-2 pb-3 pt-1">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "block px-3 py-2 text-sm rounded-md my-1 transition-colors",
-                  pathname === item.href
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                )}
-                onClick={() => setShowMobileMenu(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              if (item.label === "Inscripción" && !showInscripcion) return null;
+              if (item.label === "Renovación" && !showRenovacion) return null;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "block px-3 py-2 text-sm rounded-md my-1 transition-colors",
+                    pathname === item.href
+                      ? "bg-blue-50 text-blue-700 font-medium"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  )}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       )}

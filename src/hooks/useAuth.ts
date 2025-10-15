@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import {
@@ -8,87 +8,149 @@ import {
   getProfile,
   register,
 } from "@/services/auth";
-import type { LoginCredentials, User, RegisterCredentials } from "@/types/auth";
+import type {
+  LoginCredentials,
+  RegisterCredentials,
+  User,
+} from "@/types/auth";
+import type { Scholarship } from "@/types/scholarship";
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [scholarship, setScholarship] = useState<Scholarship | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // 🔹 Inicializar desde localStorage en cliente
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      const storedScholarship = localStorage.getItem("scholarship");
+      if (storedUser) setUser(JSON.parse(storedUser));
+      if (storedScholarship) setScholarship(JSON.parse(storedScholarship));
+    }
+    setLoading(false);
+  }, []);
+
+  // 🔹 Guardar en estado y localStorage
+  const saveUserData = useCallback((userData: User, scholarshipData?: Scholarship | null) => {
+    setUser(userData);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user", JSON.stringify(userData));
+      if (scholarshipData) {
+        setScholarship(scholarshipData);
+        localStorage.setItem("scholarship", JSON.stringify(scholarshipData));
+      }
+    }
+  }, []);
+
+  // 🔹 Limpiar datos
+  const clearUserData = useCallback(() => {
+    setUser(null);
+    setScholarship(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user");
+      localStorage.removeItem("scholarship");
+    }
+    Cookies.remove("user_roles");
+    Cookies.remove("token");
+  }, []);
+
+  // 🔹 Obtener perfil desde backend y actualizar estado/localStorage
   const fetchUser = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getProfile();
-      setUser(res.data);
-      if (res.data.user && res.data.user.roles && res.data.user.roles.length > 0) {
-        const roles = res.data.user.roles.join(",");
-        Cookies.set("user_roles", roles, { secure: true, sameSite: "Strict", path: "/" });
+      const { user: userData, scholarship: scholarshipData } = res.data;
+
+      saveUserData(userData, scholarshipData);
+
+      if (userData?.roles?.length) {
+        Cookies.set("user_roles", userData.roles.join(","), {
+          secure: true,
+          sameSite: "Strict",
+          path: "/",
+        });
       }
     } catch {
-      setUser(null);
-      Cookies.remove("token");
-      Cookies.remove("user_roles");
+      clearUserData();
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [saveUserData, clearUserData]);
 
-  const handleLogin = useCallback(
-    async (credentials: LoginCredentials) => {
-      setLoading(true);
-      try {
-        await getCsrfCookie();
-        const res = await login(credentials);
-        if (res.data.token) {
-          Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
-        }
-        await fetchUser();
-        return res.data; // Devuelve el JSON del login
-      } catch (error: any) {
-        setLoading(false);
-        if (error.response) {
-          if (error.response.status === 422) {
-            const validationErrors = error.response.data.errors;
-            throw { type: "validation", messages: Object.values(validationErrors).flat() };
-          }
-          if (error.response.status === 401) {
-            throw { type: "auth", message: error.response.data.message };
-          }
-        }
-        throw { type: "unknown", message: "Error inesperado al iniciar sesión" };
-      }
-    },
-    [fetchUser]
-  );
-
-  const handleRegister = useCallback(
-    async (credentials: RegisterCredentials) => {
+  const handleLogin = useCallback(async (credentials: LoginCredentials) => {
+    setLoading(true);
+    try {
       await getCsrfCookie();
-      try {
-        const res = await register(credentials); // register usa tu instancia de axios
-        if (res.data.token) {
-          Cookies.set("token", res.data.token, { secure: true, sameSite: "Strict", path: "/" });
-        }
-        await fetchUser();
-        return res.data; // devuelve la data cuando todo va bien
-      } catch (error: any) {
-        if (error.response?.status === 422) {
-          // lanzamos la respuesta del backend para manejar errores específicos en el formulario
-          throw error.response.data;
-        }
-        throw error; // otros errores
+      const res = await login(credentials);
+      const { user: userData, scholarship: scholarshipData, token } = res.data;
+
+      if (token) {
+        Cookies.set("token", token, { secure: true, sameSite: "Strict", path: "/" });
       }
-    },
-    [fetchUser]
-  );
+
+      saveUserData(userData, scholarshipData);
+
+      if (userData?.roles?.length) {
+        Cookies.set("user_roles", userData.roles.join(","), {
+          secure: true,
+          sameSite: "Strict",
+          path: "/",
+        });
+      }
+
+      return res.data;
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        throw { type: "validation", messages: Object.values(error.response.data.errors).flat() };
+      }
+      if (error.response?.status === 401) {
+        throw { type: "auth", message: error.response.data.message };
+      }
+      throw { type: "unknown", message: "Error inesperado al iniciar sesión" };
+    } finally {
+      setLoading(false);
+    }
+  }, [saveUserData]);
+
+  const handleRegister = useCallback(async (credentials: RegisterCredentials) => {
+    setLoading(true);
+    try {
+      await getCsrfCookie();
+      const res = await register(credentials);
+      const { user: userData, scholarship: scholarshipData, token } = res.data;
+
+      if (token) {
+        Cookies.set("token", token, { secure: true, sameSite: "Strict", path: "/" });
+      }
+
+      saveUserData(userData, scholarshipData);
+
+      return res.data;
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        throw error.response.data;
+      }
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [saveUserData]);
 
   const handleLogout = useCallback(async () => {
     await logout();
-    setUser(null);
-    Cookies.remove("token");
-    Cookies.remove("user_roles");
+    clearUserData();
     router.push("/auth");
-  }, [router]);
+  }, [clearUserData, router]);
 
-  return { user, loading, handleLogin, handleRegister, handleLogout };
+  return {
+    user,
+    scholarship,
+    loading,
+    handleLogin,
+    handleRegister,
+    handleLogout,
+    fetchUser,
+  };
 }
